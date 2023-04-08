@@ -277,7 +277,11 @@ while True:
                     for victim in players:
                         if victim != player:
                             if players[victim].color != shooter.color and not in_base(players[victim]) and players[victim].gets_shot(shooter):
-                                shooter.kills+=1
+                                if players[victim].health <= 0:
+                                    shooter.score += 100
+                                    shooter.kills+=1
+                                    players[victim].health = 100
+                                shooter.score+=10
                 print(players[player].get_player_stats())
                 
             if int(time.time()) % 1 == 0:
