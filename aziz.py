@@ -287,7 +287,7 @@ while True:
             if int(time.time()) % 1 == 0:
                 new_json = {}
                 for id in players:
-                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
+                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected, "Just Shot": players[id].is_green and not players[id].was_green}
                 requests.post('http://asingh921.pythonanywhere.com/hello', json=new_json)
 
             # plotting
