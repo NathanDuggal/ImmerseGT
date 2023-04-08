@@ -1,0 +1,26 @@
+{% if objects %}
+  <table id='result' class='display'>
+    <thead>
+      <tr>
+      {% for header in headers %}
+        <th>{{header}}</th>
+      {% endfor %}
+      </tr>
+    </thead>
+
+    <tbody>
+    {% for object in objects.values() %}    
+      <tr style ="background-color: #{{object.color}}">
+        
+        <td>{{object.name}}</td>
+        <td>{{object.score}}</td>
+        <td>{{object.kills}}</td>
+        <td>{{object.deaths}}</td>
+        <td>{{object.accuracy}}</td>
+        <td>{{object.connected}}</td>
+        
+      </tr>
+    {% endfor %}
+    </tbody>
+  </table>
+{% endif %}
