@@ -39,8 +39,12 @@ arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
 # green_range = [np.array([40,50,50]), np.array([70,255,255])]
 
-red_range_1 = [np.array([0,100,100]), np.array([10,255,255])]
-red_range_2 = [np.array([170,100,100]), np.array([180,255,255])]
+red_range_1 = [np.array([0,120,120]), np.array([10,255,255])]
+red_range_2 = [np.array([170,120,120]), np.array([180,255,255])]
+
+bases = {"Red" : [100, 100],
+         "Blue" : [500, 300]}
+base_radius = 75
 
 
 class Wall:
@@ -110,12 +114,12 @@ class Player:
     
 
 
-players = {1: Player(1, "1", "Red"), 
-            2: Player(2, '2', "Red"), 
-            3: Player(3, '3', "Red"),
-            4: Player(4, "4", "Blue"), 
-            5: Player(5, '5', "Blue"), 
-            6: Player(6, '6', "Blue")}
+players = { 0: Player(0, "0", "Red"), 
+            1: Player(1, '1', "Red"), 
+            2: Player(2, '2', "Red"),
+            3: Player(3, "3", "Blue"), 
+            4: Player(4, '4', "Blue"), 
+            5: Player(5, '5', "Blue")}
 
 
 #made by chatgpt
@@ -150,6 +154,13 @@ def check_ray_intersection(player, shooter):
 
 def dist(x1,y1,x2,y2):
     return math.sqrt((x1-x2)**2+(y1-y2)**2)
+
+def in_base(player):
+    base_coordinates = bases.get(player.color)
+    return dist(player.xPos, player.yPos, base_coordinates[0], base_coordinates[1]) <= base_radius
+
+
+
 
 
 def get_contours(mask, min_area):
@@ -259,22 +270,21 @@ while True:
             people_vectors = update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players)
 
 
-            #updates each from per player like shooting
             for player in players:
                 if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
                     shooter = players[player]
                     shooter.ammo -= 1
                     for victim in players:
                         if victim != player:
-                            if players[victim].gets_shot(shooter):
+                            if players[victim].color != shooter.color and not in_base(players[victim]) and players[victim].gets_shot(shooter):
                                 shooter.kills+=1
                 print(players[player].get_player_stats())
-
-            # if int(time.time()) % 3 == 0:
-            #     new_json = {}
-            #     for id in players:
-            #         new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
-            #     requests.post('http://127.0.0.1:5000/hello', json=new_json)
+                
+            if int(time.time()) % 1 == 0:
+                new_json = {}
+                for id in players:
+                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
+                requests.post('http://asingh921.pythonanywhere.com/hello', json=new_json)
 
             # plotting
             ax.clear()
@@ -289,6 +299,10 @@ while True:
             for i in range(len(aruco_x)):
                 circle = plt.Circle((aruco_x[i], aruco_y[i]), 50, color='r', fill=False)
                 ax.add_patch(circle)
+            red_base = plt.Circle(bases["Red"], 75, color='r', fill=False)
+            blue_base = plt.Circle(bases["Blue"], 75, color='b', fill=False)
+            ax.add_patch(red_base)
+            ax.add_patch(blue_base)
             ax.scatter(green_x,green_y,c='g')
             plt.pause(0.02)
             #graph_image = cv2.cvtColor(np.array(fig.canvas.get_renderer()._renderer),cv2.COLOR_RGB2BGR) 
