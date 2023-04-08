@@ -42,6 +42,11 @@ arucoParams = cv2.aruco.DetectorParameters_create()
 red_range_1 = [np.array([0,100,100]), np.array([10,255,255])]
 red_range_2 = [np.array([170,100,100]), np.array([180,255,255])]
 
+bases = {"Red" : [20, 20],
+         "Green" : [50, 50],
+         "Blue" : [70, 70]}
+base_radius = 10
+
 
 class Wall:
     def __init__(self, x1, y1, x2, y2):
@@ -150,6 +155,13 @@ def check_ray_intersection(player, shooter):
 
 def dist(x1,y1,x2,y2):
     return math.sqrt((x1-x2)**2+(y1-y2)**2)
+
+def in_base(player):
+    base_coordinates = bases.get(player.color)
+    return dist(player.xPos, player.yPos, base_coordinates[0], base_coordinates[1]) <= base_radius
+
+
+
 
 
 def get_contours(mask, min_area):
@@ -265,7 +277,7 @@ while True:
                 shooter.ammo -= 1
                 for victim in players:
                     if victim != player:
-                        if players[victim].gets_shot(shooter):
+                        if players[victim].color != shooter.color and not in_base(players[victim]) and players[victim].gets_shot(shooter):
                             shooter.kills+=1
             print(players[player].get_player_stats())
 
