@@ -1,0 +1,7 @@
+{
+    "Bob": {"Health": 80, "Score": -20, "Kills": -2, "Deaths": -200, "Accuracy": 80, "Ammo": 30, "Connected": false}, 
+
+    "Joe": {"Health": 80, "Score": -20, "Kills": -2, "Deaths": -200, "Accuracy": 80, "Ammo": 30, "Connected": false},
+
+    "Bill": {"Health": 80, "Score": -20, "Kills": -2, "Deaths": -200, "Accuracy": 80, "Ammo": 30, "Connected": false}
+}

@@ -2,6 +2,8 @@ from flask import Flask
 from flask_table import Table, Col
 from markupsafe import escape
 from flask import render_template
+from flask import request
+import json
 
 
 app = Flask(__name__)
@@ -10,6 +12,8 @@ class Player:
     def __init__(self, name, color):
         self.name = name
         self.score = 0
+        self.kills = 0
+        self.deaths = 0
         self.health = 100
         self.ammo = 50
         self.accuracy = 100
@@ -20,14 +24,8 @@ class Player:
         return "Player :"
     
 
-class ItemTable(Table):
-    name = Col('Name')
-    health = Col('Health')
-    score = Col('Score')
-    ammo = Col('Ammo')
-    connected = Col('Connected')
 
-headers = ['Name','Health', 'Score', 'Accuracy', 'Ammo', 'Connected']
+headers = ['Name','Health', 'Score', 'Kills', 'Deaths', 'Accuracy', 'Ammo', 'Connected']
 
 
 color = {
@@ -53,12 +51,64 @@ players = {'Bob': Player('Bob', color.get("light-blue")),
 # Print the html
 # print(table.__html__())
 
+
+#for tesing
+d = {}
+for player_name in players:
+    p1 = players.get(player_name)
+    d[player_name] = {"Health" : p1.health - 20,
+                      "Score" : p1.score - 20,
+                      "Kills" : p1.score - 2,
+                      "Deaths" : p1.score - 200,
+                      "Accuracy" : p1.accuracy - 20,
+                      "Ammo" : p1.ammo - 20,
+                      "Connected" : p1.connected}
+    
+
+with open("output.json", "w") as f:
+    json.dump(d, f)
+
+
+
+@app.route('/update', methods=['POST', 'GET'])
+def update_players_stats():
+    
+    with open("output.json", "r") as content:
+        data = json.load(content)
+    for player_name in data:
+            player = players.get(player_name)
+            player.health = data[player_name]["Health"]
+            player.score =  data[player_name]["Score"]
+            player.kills =  data[player_name]["Kills"]
+            player.deaths =  data[player_name]["Deaths"]
+            player.accuracy =  data[player_name]["Accuracy"]
+            player.ammo =  data[player_name]["Ammo"]
+            player.connected =  data[player_name]["Connected"]
+
+
+    # if request.method == 'POST':
+    #     data = json.load(request.get_json(force=True))
+        
+    #     for player_name in data:
+    #         player = players.get(player_name)
+    #         player.health = player_name[0]
+    #         player.score = player_name[1]
+    #         player.accuracy = player_name[2]
+    #         player.ammo = player_name[3]
+    #         player.connected = player_name[4]
+
+        # if valid_login(request.form['username'],
+        #                request.form['password']):
+        #     return log_the_user_in(request.form['username'])
+
+
+
 @app.route('/user/<username>')
 def show_user_profile(username):
     # show the user profile for that user
     
     p1 = players.get(username)
-    attributes = [p1.name, p1.health, p1.score, str(p1.accuracy) + "%", p1.ammo, p1.connected]
+    attributes = [p1.name, p1.health, p1.score, p1.kills, p1.deaths, str(p1.accuracy) + "%", p1.ammo, p1.connected]
     return render_template('playerStats.html',
                             headers = headers,
                             objects = attributes,
@@ -81,7 +131,7 @@ def show_user_profile(username):
 
 @app.route("/")
 def leader_board():
-    headers = ['Name', 'Score', 'Accuracy', 'Connected']
+    headers = ['Name', 'Score', 'Kills', 'Deaths', 'Accuracy', 'Connected']
     # leader_board = ""
     # for name, player in players:
     #     player = players.get(name)
@@ -90,6 +140,7 @@ def leader_board():
     #                         headers = headers,
     #                         objects = attributes)
     # return leader_board
+    update_players_stats()
     return render_template('leaderboard.html',
                             headers = headers,
                             objects = players
