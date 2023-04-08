@@ -1,5 +1,4 @@
 from flask import Flask
-from flask_table import Table, Col
 from markupsafe import escape
 from flask import render_template
 from flask import request, make_response

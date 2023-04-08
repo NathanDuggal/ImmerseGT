@@ -8,12 +8,14 @@ from multiprocessing import Process, Value, Array
 from flask import Flask
 from flask import render_template
 from flask import send_from_directory
+import requests
 
 import matplotlib
 import matplotlib.pyplot as plt
 
 from flask import Flask, request, jsonify
 from PIL import Image
+import json
 
 
 MIN_AREA = 20
@@ -32,9 +34,8 @@ line1, = ax.plot([], []) # Returns a tuple of line objects, thus the comma
 vid = cv2.VideoCapture(0)
 
 # setup aruco tags
+
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
-print(arucoDict.keys())
-arucoDict = dict((k, arucoDict[k]) for k in (1,2,3,4,5,6))
 arucoParams = cv2.aruco.DetectorParameters_create()
 green_range = [np.array([40,50,50]), np.array([70,255,255])]
 
@@ -46,15 +47,19 @@ class Wall:
         self.x2 = x2
         self.y2 = y2
 
+
 class Player:
-    def __init__(self, id, name):
+    def __init__(self, id, name, color):
         self.id = id
+        self.color = color
         self.xPos = 0
         self.yPos = 0
         self.xDir = 0
         self.yDir = 0
+        self.kills = 0
         self.name = name
         self.score = 0
+        self.deaths = 0
         self.health = 100
         self.dead = False
         self.ammo = 10
@@ -95,18 +100,19 @@ class Player:
             self.health -= shooter.bulletDamage
             if self.health <= 0:
                 self.dead = True
+            return True
+        else:
+            return False
 
     
 
 
-players = {1: Player(1, "Bradley"), 
-            2: Player(2, 'Joe Biden'), 
-            3: Player(3, 'Bill Clinton'),
-            4: Player(4, "Mary's Lamb"), 
-            5: Player(5, 'Kot'), 
-            6: Player(6, 'Jill Biden')}
-
-
+players = {1: Player(1, "Bradley", "Red"), 
+            2: Player(2, 'Joe Biden', "Red"), 
+            3: Player(3, 'Bill Clinton', "Red"),
+            4: Player(4, "Mary's Lamb", "Blue"), 
+            5: Player(5, 'Kot', "Blue"), 
+            6: Player(6, 'Jill Biden', "Blue")}
 
 
 #made by chatgpt
@@ -238,9 +244,28 @@ while True:
         aruco_x = [n[0][0][0] for n in corners]
         aruco_y = [n[0][0][1] for n in corners]
 
-        # get vectors for ids that have green {id: [[x1,y1],[x2,y2]]}
+        # get vectors for ids that have green {id: [[x1,y1],[x2,y2]]} and updates player movements
         people_vectors = update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players)
 
+
+        #updates each from per player like shooting
+        for player in players:
+            if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
+                shooter = players[player]
+                shooter.ammo -= 1
+                for victim in players:
+                    if victim != player:
+                        if players[victim].gets_shot(shooter):
+                            shooter.kills+=1
+            print(players[player].get_player_stats())
+
+        if int(time.time()) % 3 == 0:
+            new_json = {}
+            for id in players:
+                new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
+            requests.post('http://127.0.0.1:5000/hello', json=json.dumps(new_json))
+
+        # plotting
         ax.clear()
 
         for person in people_vectors:
@@ -250,16 +275,6 @@ while True:
         ax.scatter([0,1920], [0,1080])
         ax.scatter(aruco_x,aruco_y,c='r')
         ax.scatter(green_x,green_y,c='g')
-
-        for player in players:
-            if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
-                shooter = players[player]
-                shooter.ammo -= 1
-                for victim in players:
-                    if victim != player:
-                        players[victim].gets_shot(shooter)
-            print(players[player].get_player_stats())
-
         plt.pause(0.02)
         #graph_image = cv2.cvtColor(np.array(fig.canvas.get_renderer()._renderer),cv2.COLOR_RGB2BGR) 
         plt.show()
