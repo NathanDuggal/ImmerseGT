@@ -25,8 +25,8 @@ DISPLAY_STREAM = True
 plt.ion()
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.axes.set_xlim(0,1000)
-ax.axes.set_ylim(0,1000)
+ax.axes.set_xlim(0,600)
+ax.axes.set_ylim(0,400)
 line1, = ax.plot([], []) # Returns a tuple of line objects, thus the comma
 
 
@@ -213,88 +213,95 @@ def update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players):
 
 
 while True:
-    ret, frame = vid.read()
-    # ax.cla()
+    try:
+        ret, frame = vid.read()
+        # ax.cla()
 
-    # checks if frame is actually read
-    if (not isinstance(frame, type(None))):
-        img_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
+        # checks if frame is actually read
+        if (not isinstance(frame, type(None))):
+            img_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
-        # mask image, get contours
-        # mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
-        
-        mask1 = cv2.inRange(img_hsv, red_range_1[0], red_range_1[1])
-        mask2 = cv2.inRange(img_hsv, red_range_2[0], red_range_2[1])
-        
-        mask = cv2.bitwise_or(mask1, mask2)
-        
-        green_x, green_y = get_contours(mask, MIN_AREA)
-
-        # remove contours for display
-        output_hsv = 0
-        if DISPLAY_STREAM:
-            output_hsv = img_hsv.copy()
-            output_hsv[np.where(mask==0)] = 0
-        
-        # get x and y coordinates of aruco tags
-        (corners_, ids_, rejected_) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
-        # corners, ids, rejected = [],[],[]
-        print(corners_)
-        corners, ids, rejected = corners_, ids_, rejected_
-        # for c,id in enumerate(ids):
-        #     print(c)
-        #     if id in [1,2,3,4,5,6]:
-        #         corners.append(corners_[c])
-        #         ids.append(ids_[c])
-        #         rejected.append(rejected_[c])
-        #     else:
-        #         print(id)
-
-
-        aruco_x = [n[0][0][0] for n in corners]
-        aruco_y = [n[0][0][1] for n in corners]
-
-        # get vectors for ids that have green {id: [[x1,y1],[x2,y2]]} and updates player movements
-        people_vectors = update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players)
-
-
-        #updates each from per player like shooting
-        for player in players:
-            if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
-                shooter = players[player]
-                shooter.ammo -= 1
-                for victim in players:
-                    if victim != player:
-                        if players[victim].gets_shot(shooter):
-                            shooter.kills+=1
-            print(players[player].get_player_stats())
-
-        # if int(time.time()) % 3 == 0:
-        #     new_json = {}
-        #     for id in players:
-        #         new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
-        #     requests.post('http://127.0.0.1:5000/hello', json=new_json)
-
-        # plotting
-        ax.clear()
-
-        for person in people_vectors:
-            ax.plot([people_vectors[person][0][0],people_vectors[person][1][0]],
-                    [people_vectors[person][0][1],people_vectors[person][1][1]])
+            # mask image, get contours
+            # mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
             
-        ax.scatter([0,1920], [0,1080])
-        ax.scatter(aruco_x,aruco_y,c='r')
-        ax.scatter(green_x,green_y,c='g')
-        plt.pause(0.02)
-        #graph_image = cv2.cvtColor(np.array(fig.canvas.get_renderer()._renderer),cv2.COLOR_RGB2BGR) 
-        plt.show()
+            mask1 = cv2.inRange(img_hsv, red_range_1[0], red_range_1[1])
+            mask2 = cv2.inRange(img_hsv, red_range_2[0], red_range_2[1])
+            
+            mask = cv2.bitwise_or(mask1, mask2)
+            
+            green_x, green_y = get_contours(mask, MIN_AREA)
 
-        if DISPLAY_STREAM:
-            cv2.imshow("img", cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR))
+            # remove contours for display
+            output_hsv = 0
+            if DISPLAY_STREAM:
+                output_hsv = img_hsv.copy()
+                output_hsv[np.where(mask==0)] = 0
+            
+            # get x and y coordinates of aruco tags
+            (corners_, ids_, rejected_) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
+            # corners, ids, rejected = [],[],[]
+            print(corners_)
+            corners, ids, rejected = corners_, ids_, rejected_
+            # for c,id in enumerate(ids):
+            #     print(c)
+            #     if id in [1,2,3,4,5,6]:
+            #         corners.append(corners_[c])
+            #         ids.append(ids_[c])
+            #         rejected.append(rejected_[c])
+            #     else:
+            #         print(id)
 
-        # the 'q' button is set as the quitting button you may use any
-        if cv2.waitKey(205) & 0xFF == ord('q'):
-            break
+
+            aruco_x = [n[0][0][0] for n in corners]
+            aruco_y = [n[0][0][1] for n in corners]
+
+            # get vectors for ids that have green {id: [[x1,y1],[x2,y2]]} and updates player movements
+            people_vectors = update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players)
+
+
+            #updates each from per player like shooting
+            for player in players:
+                if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
+                    shooter = players[player]
+                    shooter.ammo -= 1
+                    for victim in players:
+                        if victim != player:
+                            if players[victim].gets_shot(shooter):
+                                shooter.kills+=1
+                print(players[player].get_player_stats())
+
+            # if int(time.time()) % 3 == 0:
+            #     new_json = {}
+            #     for id in players:
+            #         new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
+            #     requests.post('http://127.0.0.1:5000/hello', json=new_json)
+
+            # plotting
+            ax.clear()
+
+            for person in people_vectors:
+                # ax.plot([people_vectors[person][0][0],people_vectors[person][1][0]],
+                #         [people_vectors[person][0][1],people_vectors[person][1][1]])
+                ax.axline(people_vectors[person][0],people_vectors[person][1])
+                
+            ax.scatter([0,600], [0,600])
+            ax.scatter(aruco_x,aruco_y,c='r')
+            for i in range(len(aruco_x)):
+                circle = plt.Circle((aruco_x[i], aruco_y[i]), 50, color='r', fill=False)
+                ax.add_patch(circle)
+            ax.scatter(green_x,green_y,c='g')
+            plt.pause(0.02)
+            #graph_image = cv2.cvtColor(np.array(fig.canvas.get_renderer()._renderer),cv2.COLOR_RGB2BGR) 
+            plt.show()
+
+            if DISPLAY_STREAM:
+                cv2.imshow("img", cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR))
+
+            # the 'q' button is set as the quitting button you may use any
+            if cv2.waitKey(205) & 0xFF == ord('q'):
+                break
+    except KeyError:
+        pass
         
 # After the loop release the cap object
 vid.release()
