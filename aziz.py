@@ -33,30 +33,111 @@ vid = cv2.VideoCapture(0)
 
 # setup aruco tags
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
+print(arucoDict.keys())
+arucoDict = dict((k, arucoDict[k]) for k in (1,2,3,4,5,6))
 arucoParams = cv2.aruco.DetectorParameters_create()
 green_range = [np.array([40,50,50]), np.array([70,255,255])]
 
 
-
+class Wall:
+    def __init__(self, x1, y1, x2, y2):
+        self.x1 = x1
+        self.y1 = y1
+        self.x2 = x2
+        self.y2 = y2
 
 class Player:
-    def __init__(self, name):
+    def __init__(self, id, name):
+        self.id = id
+        self.xPos = 0
+        self.yPos = 0
+        self.xDir = 0
+        self.yDir = 0
         self.name = name
         self.score = 0
         self.health = 100
-        self.ammo = 50
+        self.dead = False
+        self.ammo = 10
+        self.bulletDamage = 10
         self.connected = False
+        self.in_base = False
+        self.was_green = False
+        self.is_green = False
+        self.player_radius = 20
 
     def get_player_stats(self):
-        return "Player :"
+        return f"Player: id: {str(self.id)} , green: {self.is_green}, connnected: {self.connected}, health: {self.health}"
+
+    def gets_shot(self, shooter):
+        # Extracting the components of the ray
+        start_x, start_y = shooter.xPos, shooter.yPos
+        end_x, end_y = shooter.xDir, shooter.yDir
+        
+        # Finding the direction vector of the ray
+        direction_x = end_x - start_x
+        direction_y = end_y - start_y
+        
+        # Finding the vector from the ray's start point to the player's center
+        player_to_ray_start_x = start_x - self.xPos
+        player_to_ray_start_y = start_y - self.yPos
+        
+        # Calculating the coefficients of the quadratic equation for intersection
+        a = direction_x**2 + direction_y**2
+        b = 2 * (player_to_ray_start_x * direction_x + player_to_ray_start_y * direction_y)
+        c = player_to_ray_start_x**2 + player_to_ray_start_y**2 - self.player_radius**2
+        
+        # Calculating the discriminant
+        discriminant = b**2 - 4 * a * c
+        
+        # Checking if the ray intersects the player
+        if discriminant >= 0 and shooter.was_green == False:
+            # If the discriminant is non-negative, the ray intersects the player
+            self.health -= shooter.bulletDamage
+            if self.health <= 0:
+                self.dead = True
+
     
 
-players = {1: Player('Bob'), 
-            2: Player('Joe'), 
-            3: Player('Bill')}
+
+players = {1: Player(1, "Bradley"), 
+            2: Player(2, 'Joe Biden'), 
+            3: Player(3, 'Bill Clinton'),
+            4: Player(4, "Mary's Lamb"), 
+            5: Player(5, 'Kot'), 
+            6: Player(6, 'Jill Biden')}
 
 
 
+
+#made by chatgpt
+def check_ray_intersection(player, shooter):
+    # Extracting the components of the ray
+    start_x, start_y = shooter.xPos, shooter.yPos
+    end_x, end_y = shooter.xDir, shooter.yDir
+    
+    # Finding the direction vector of the ray
+    direction_x = end_x - start_x
+    direction_y = end_y - start_y
+    
+    # Finding the vector from the ray's start point to the player's center
+    player_to_ray_start_x = start_x - player.xPos
+    player_to_ray_start_y = start_y - player.yPos
+    
+    # Calculating the coefficients of the quadratic equation for intersection
+    a = direction_x**2 + direction_y**2
+    b = 2 * (player_to_ray_start_x * direction_x + player_to_ray_start_y * direction_y)
+    c = player_to_ray_start_x**2 + player_to_ray_start_y**2 - player.player_radius**2
+    
+    # Calculating the discriminant
+    discriminant = b**2 - 4 * a * c
+    
+    # Checking if the ray intersects the player
+    if discriminant >= 0:
+        # If the discriminant is non-negative, the ray intersects the player
+        return True
+    else:
+        # If the discriminant is negative, the ray does not intersect the player
+        return False
 
 def dist(x1,y1,x2,y2):
     return math.sqrt((x1-x2)**2+(y1-y2)**2)
@@ -76,7 +157,7 @@ def get_contours(mask, min_area):
     return x, y
 
 
-def get_people_vectors(aruco_x, aruco_y, green_x, green_y, ids):
+def update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players):
     green_point_ownership = {e:[] for e in zip(aruco_x,aruco_y)}
     for i in range(len(green_x)):
         gx = green_x[i]
@@ -99,7 +180,27 @@ def get_people_vectors(aruco_x, aruco_y, green_x, green_y, ids):
             ys = sum(point_list[1]) / float(len(point_list[1]))
             people_vectors.append(((person[0],person[1]),(xs,ys)))
 
-    return {ids[list(zip(aruco_x,aruco_y)).index(vector[0])][0] : vector for vector in people_vectors}
+    vectors = {ids[list(zip(aruco_x,aruco_y)).index(vector[0])][0] : vector for vector in people_vectors}
+
+    for player in players:
+        players[player].connected = False
+    
+    if aruco_x:
+        for id,i in zip(ids,list(range(0,len(aruco_x)))):
+            id = id[0]
+            print(id,i)
+            players[id].xPos = aruco_x[i]
+            players[id].yPos = aruco_y[i]
+            players[id].was_green = players[id].is_green
+            players[id].is_green = False
+            players[id].connected = True
+
+        for player_id in vectors:
+            players[player_id].is_green = True
+            players[player_id].xDir = vectors[player_id][1][0]
+            players[player_id].yDir = vectors[player_id][1][1]
+
+    return vectors
 
 
 while True:
@@ -121,12 +222,24 @@ while True:
             output_hsv[np.where(mask==0)] = 0
         
         # get x and y coordinates of aruco tags
-        (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
+        (corners_, ids_, rejected_) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
+        # corners, ids, rejected = [],[],[]
+        corners, ids, rejected = corners_, ids_, rejected_
+        # for c,id in enumerate(ids):
+        #     print(c)
+        #     if id in [1,2,3,4,5,6]:
+        #         corners.append(corners_[c])
+        #         ids.append(ids_[c])
+        #         rejected.append(rejected_[c])
+        #     else:
+        #         print(id)
+
+
         aruco_x = [n[0][0][0] for n in corners]
         aruco_y = [n[0][0][1] for n in corners]
 
         # get vectors for ids that have green {id: [[x1,y1],[x2,y2]]}
-        people_vectors = get_people_vectors(aruco_x, aruco_y, green_x, green_y, ids)
+        people_vectors = update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players)
 
         ax.clear()
 
@@ -138,6 +251,14 @@ while True:
         ax.scatter(aruco_x,aruco_y,c='r')
         ax.scatter(green_x,green_y,c='g')
 
+        for player in players:
+            if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
+                shooter = players[player]
+                shooter.ammo -= 1
+                for victim in players:
+                    if victim != player:
+                        players[victim].gets_shot(shooter)
+            print(players[player].get_player_stats())
 
         plt.pause(0.02)
         #graph_image = cv2.cvtColor(np.array(fig.canvas.get_renderer()._renderer),cv2.COLOR_RGB2BGR) 
