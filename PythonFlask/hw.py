@@ -55,8 +55,8 @@ players = {'Bob': Player('Bob', color.get("light-blue")),
 
 #for tesing
 d = {}
-for player_name in players:
-    p1 = players.get(player_name)
+for player_id in players:
+    p1 = players.get(data[player_id]["Name"])
     d[player_name] = {"Health" : p1.health - 20,
                       "Score" : p1.score - 20,
                       "Kills" : p1.score - 2,
@@ -94,8 +94,7 @@ with open("output.json", "w") as f:
 @app.route('/request', methods=['POST', 'GET'])
 def post():
     r = requests.post('http://127.0.0.1:5000/hello', json=d)
-    # print(d)
-    # print(r.text)
+    # print .text)
     return make_response("",200)
     return render_template('request.html')
 
@@ -118,16 +117,16 @@ def update_players_stats():
     # if request.method == 'POST':
     #     data = request.get_json()
     #     print(data)
-    for player_name in data:
-        player = players.get(player_name)
+    for player_id in data:
+        player = players.get(data[player_id]["Name"])
         # print ("3  " + str(data[player_name]["Health"]))
-        player.health = data[player_name]["Health"]
-        player.score =  data[player_name]["Score"]
-        player.kills =  data[player_name]["Kills"]
-        player.deaths =  data[player_name]["Deaths"]
-        player.accuracy =  data[player_name]["Accuracy"]
-        player.ammo =  data[player_name]["Ammo"]
-        player.connected =  data[player_name]["Connected"]
+        player.health = data[player_id]["Health"]
+        player.score =  data[player_id]["Score"]
+        player.kills =  data[player_id]["Kills"]
+        player.deaths =  data[player_id]["Deaths"]
+        # player.accuracy =  data[player_id]["Accuracy"]
+        player.ammo =  data[player_id]["Ammo"]
+        player.connected =  data[player_id]["Connected"]
     return make_response("",200)
 
 
