@@ -107,12 +107,12 @@ class Player:
     
 
 
-players = {1: Player(1, "Bradley", "Red"), 
-            2: Player(2, 'Joe Biden', "Red"), 
-            3: Player(3, 'Bill Clinton', "Red"),
-            4: Player(4, "Mary's Lamb", "Blue"), 
-            5: Player(5, 'Kot', "Blue"), 
-            6: Player(6, 'Jill Biden', "Blue")}
+players = {1: Player(1, "1", "Red"), 
+            2: Player(2, '2', "Red"), 
+            3: Player(3, '3', "Red"),
+            4: Player(4, "4", "Blue"), 
+            5: Player(5, '5', "Blue"), 
+            6: Player(6, '6', "Blue")}
 
 
 #made by chatgpt
@@ -263,7 +263,7 @@ while True:
             new_json = {}
             for id in players:
                 new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
-            requests.post('http://127.0.0.1:5000/hello', json=json.dumps(new_json))
+            requests.post('http://127.0.0.1:5000/hello', json=new_json)
 
         # plotting
         ax.clear()

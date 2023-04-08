@@ -42,9 +42,12 @@ color = {
 
 
 
-players = {'Bob': Player('Bob', color.get("light-blue")), 
-            "Joe": Player('Joe', color.get("yellow")), 
-            "Bill": Player('Bill', color.get("red"))}
+players = {'1': Player('1', color.get("light-blue")), 
+            "2": Player('2', color.get("yellow")), 
+            "3": Player('3', color.get("red")),
+            '4': Player('4', color.get("light-blue")), 
+            "5": Player('5', color.get("yellow")), 
+            "6": Player('6', color.get("red"))}
 
 # table = ItemTable(players)
 
@@ -52,21 +55,21 @@ players = {'Bob': Player('Bob', color.get("light-blue")),
 # print(table.__html__())
 
 
-#for tesing
-d = {}
-for player_id in players:
-    p1 = players.get(data[player_id]["Name"])
-    d[player_name] = {"Health" : p1.health - 20,
-                      "Score" : p1.score - 20,
-                      "Kills" : p1.score - 2,
-                      "Deaths" : p1.score - 200,
-                      "Accuracy" : p1.accuracy - 20,
-                      "Ammo" : p1.ammo - 20,
-                      "Connected" : p1.connected}
+# #for tesing
+# d = {}
+# for player_id in players:
+#     p1 = players.get(data[player_id]["Name"])
+#     d[player_name] = {"Health" : p1.health - 20,
+#                       "Score" : p1.score - 20,
+#                       "Kills" : p1.score - 2,
+#                       "Deaths" : p1.score - 200,
+#                       "Accuracy" : p1.accuracy - 20,
+#                       "Ammo" : p1.ammo - 20,
+#                       "Connected" : p1.connected}
     
 
-with open("output.json", "w") as f:
-    json.dump(d, f)
+# with open("output.json", "w") as f:
+#     json.dump(d, f)
 
 
 # import requests
