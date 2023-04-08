@@ -2,8 +2,9 @@ from flask import Flask
 from flask_table import Table, Col
 from markupsafe import escape
 from flask import render_template
-from flask import request
+from flask import request, make_response
 import json
+import requests
 
 
 app = Flask(__name__)
@@ -69,21 +70,65 @@ with open("output.json", "w") as f:
     json.dump(d, f)
 
 
+# import requests
+# url = 'https://google.com'
+# payload = {'key1': 'value1', 'key2': 'value2'}
 
-@app.route('/update', methods=['POST', 'GET'])
+# # GET
+# r = requests.get(url)
+
+# # GET with params in URL
+# r = requests.get(url, params=payload)
+
+# # POST with form-encoded data
+# r = requests.post(url, data=payload)
+
+# # POST with JSON 
+# import json
+# r = requests.post(url, data=json.dumps(payload))
+
+# # Response, status etc
+# r.text
+# r.status_code
+
+@app.route('/request', methods=['POST', 'GET'])
+def post():
+    r = requests.post('http://127.0.0.1:5000/hello', json=d)
+    # print(d)
+    # print(r.text)
+    return make_response("",200)
+    return render_template('request.html')
+
+@app.route('/hello', methods=['POST', 'GET'])
 def update_players_stats():
+    # print(request.get_json())
+    # return
+    # post()
+    # print(443)
     
-    with open("output.json", "r") as content:
-        data = json.load(content)
+    # print(request.get_json(force=True))
+
+
+    # data = json.load(request.get_json(force=True))
+    data = request.get_json(force=True)
+    # print(data["Bob"])
+    # print(data)
+    # with open("output.json", "r") as content:
+    #     data = json.load(content)
+    # if request.method == 'POST':
+    #     data = request.get_json()
+    #     print(data)
     for player_name in data:
-            player = players.get(player_name)
-            player.health = data[player_name]["Health"]
-            player.score =  data[player_name]["Score"]
-            player.kills =  data[player_name]["Kills"]
-            player.deaths =  data[player_name]["Deaths"]
-            player.accuracy =  data[player_name]["Accuracy"]
-            player.ammo =  data[player_name]["Ammo"]
-            player.connected =  data[player_name]["Connected"]
+        player = players.get(player_name)
+        # print ("3  " + str(data[player_name]["Health"]))
+        player.health = data[player_name]["Health"]
+        player.score =  data[player_name]["Score"]
+        player.kills =  data[player_name]["Kills"]
+        player.deaths =  data[player_name]["Deaths"]
+        player.accuracy =  data[player_name]["Accuracy"]
+        player.ammo =  data[player_name]["Ammo"]
+        player.connected =  data[player_name]["Connected"]
+    return make_response("",200)
 
 
     # if request.method == 'POST':
