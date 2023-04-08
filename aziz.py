@@ -65,13 +65,13 @@ class Player:
         self.deaths = 0
         self.health = 100
         self.dead = False
-        self.ammo = 10
+        self.ammo = 100000
         self.bulletDamage = 10
         self.connected = False
         self.in_base = False
         self.was_green = False
         self.is_green = False
-        self.player_radius = 30
+        self.player_radius = 50
 
     def get_player_stats(self):
         return f"Player: id: {str(self.id)} , green: {self.is_green}, connnected: {self.connected}, health: {self.health}"
@@ -176,7 +176,7 @@ def update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players):
             rx = j[0]
             ry = j[1]
             dist_between = dist(gx,gy,rx,ry)
-            if dist_between < 200:
+            if dist_between < 120:
                 distances.append((dist(gx,gy,rx,ry),j))
         if distances != []:
             green_point_ownership[min(distances, key= lambda x: x[0])[1]].append((gx,gy))
