@@ -18,9 +18,8 @@ vid = cv2.VideoCapture(0)
 
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
+green_range = [np.array([40,0,0]), np.array([70,255,255])]
 
-
-color_ranges = []
 
 
 
@@ -32,17 +31,14 @@ while True:
         img_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # lower mask (0-10)
-        lower_red = np.array([0,50,50])
-        upper_red = np.array([10,255,255])
-        mask = cv2.inRange(img_hsv, lower_red, upper_red)
+        mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
 
         output_hsv = img_hsv.copy()
         output_hsv[np.where(mask==0)] = 0
 
         cv2.imshow('frame', cv2.cvtColor(output_hsv, cv2.COLOR_HSV2BGR))
 
-        # (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict,
-	    # parameters=arucoParams)
+        (corners, ids, rejected) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
 
         print(ids)
 
