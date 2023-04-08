@@ -19,7 +19,7 @@ import json
 
 
 MIN_AREA = 20
-DISPLAY_STREAM = False
+DISPLAY_STREAM = True
 
 # setup plots
 plt.ion()
@@ -37,7 +37,10 @@ vid = cv2.VideoCapture(0)
 
 arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
-green_range = [np.array([40,50,50]), np.array([70,255,255])]
+# green_range = [np.array([40,50,50]), np.array([70,255,255])]
+
+red_range_1 = [np.array([0,100,100]), np.array([10,255,255])]
+red_range_2 = [np.array([170,100,100]), np.array([180,255,255])]
 
 
 class Wall:
@@ -68,7 +71,7 @@ class Player:
         self.in_base = False
         self.was_green = False
         self.is_green = False
-        self.player_radius = 20
+        self.player_radius = 30
 
     def get_player_stats(self):
         return f"Player: id: {str(self.id)} , green: {self.is_green}, connnected: {self.connected}, health: {self.health}"
@@ -150,7 +153,7 @@ def dist(x1,y1,x2,y2):
 
 
 def get_contours(mask, min_area):
-    mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
+    # mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
     contours, hierarchy = cv2.findContours(mask, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
     x, y = [], []
     for c in contours:
@@ -211,14 +214,20 @@ def update_player_vectors(aruco_x, aruco_y, green_x, green_y, ids, players):
 
 while True:
     ret, frame = vid.read()
-    ax.cla()
+    # ax.cla()
 
     # checks if frame is actually read
     if (not isinstance(frame, type(None))):
         img_hsv=cv2.cvtColor(frame, cv2.COLOR_BGR2HSV)
 
         # mask image, get contours
-        mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
+        # mask = cv2.inRange(img_hsv, green_range[0], green_range[1])
+        
+        mask1 = cv2.inRange(img_hsv, red_range_1[0], red_range_1[1])
+        mask2 = cv2.inRange(img_hsv, red_range_2[0], red_range_2[1])
+        
+        mask = cv2.bitwise_or(mask1, mask2)
+        
         green_x, green_y = get_contours(mask, MIN_AREA)
 
         # remove contours for display
@@ -230,6 +239,7 @@ while True:
         # get x and y coordinates of aruco tags
         (corners_, ids_, rejected_) = cv2.aruco.detectMarkers(frame, arucoDict, parameters=arucoParams)
         # corners, ids, rejected = [],[],[]
+        print(corners_)
         corners, ids, rejected = corners_, ids_, rejected_
         # for c,id in enumerate(ids):
         #     print(c)
@@ -259,11 +269,11 @@ while True:
                             shooter.kills+=1
             print(players[player].get_player_stats())
 
-        if int(time.time()) % 3 == 0:
-            new_json = {}
-            for id in players:
-                new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
-            requests.post('http://127.0.0.1:5000/hello', json=new_json)
+        # if int(time.time()) % 3 == 0:
+        #     new_json = {}
+        #     for id in players:
+        #         new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected}
+        #     requests.post('http://127.0.0.1:5000/hello', json=new_json)
 
         # plotting
         ax.clear()
