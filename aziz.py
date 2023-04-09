@@ -69,7 +69,7 @@ class Player:
         self.deaths = 0
         self.health = 100
         self.dead = False
-        self.ammo = 100000
+        self.ammo = 5
         self.bulletDamage = 20
         self.connected = False
         self.in_base = False
@@ -276,6 +276,8 @@ while True:
             for player in players:
                 #recharging
                 if in_base(players[player]):
+                    if players[player].ammo < 5:
+                        players[player] += 5
                     if players[player].health < 100:
                         players[player].health += 2
 
