@@ -1,21 +1,25 @@
+<script>setInterval(() => {
+  window.location.reload();
+}, 500);
+</script>
 {% if objects %}
-  <table id='result' class='display'>
-    <thead>
-      <tr>
-      {% for header in headers %}
-        <th>{{header}}</th>
-      {% endfor %}
-      </tr>
-    </thead>
+<table id='result' class='display'>
+ <thead>
+   <tr>
+   {% for header in headers %}
+     <th>{{header}}</th>
+   {% endfor %}
+   </tr>
+ </thead>
 
-    <tbody>
-        
-      <tr style ="background-color: #{{color}}">
-        {% for object in objects %}
-        <td>{{object}}</td>
-        {% endfor %}
-      </tr>
-    
-    </tbody>
-  </table>
+ <tbody>
+
+   <tr style ="background-color: #{{color}}">
+     {% for object in objects %}
+     <td>{{object}}</td>
+     {% endfor %}
+   </tr>
+
+ </tbody>
+</table>
 {% endif %}
