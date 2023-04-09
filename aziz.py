@@ -39,8 +39,8 @@ arucoDict = cv2.aruco.Dictionary_get(cv2.aruco.DICT_4X4_50)
 arucoParams = cv2.aruco.DetectorParameters_create()
 # green_range = [np.array([40,50,50]), np.array([70,255,255])]
 
-red_range_1 = [np.array([0,120,120]), np.array([10,255,255])]
-red_range_2 = [np.array([170,120,120]), np.array([180,255,255])]
+red_range_1 = [np.array([0,100,100]), np.array([10,255,255])]
+red_range_2 = [np.array([170,100,100]), np.array([180,255,255])]
 
 bases = {"Red" : [100, 100],
          "Blue" : [500, 300]}
@@ -70,7 +70,7 @@ class Player:
         self.health = 100
         self.dead = False
         self.ammo = 100000
-        self.bulletDamage = 10
+        self.bulletDamage = 20
         self.connected = False
         self.in_base = False
         self.was_green = False
@@ -275,8 +275,9 @@ while True:
 
             for player in players:
                 #recharging
-                if in_base(players[victim]):
-                    players[victim].health += 5
+                if in_base(players[player]):
+                    if players[player].health < 100:
+                        players[player].health += 2
 
                 # shooting
                 if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
@@ -286,7 +287,7 @@ while True:
                         if victim != player:
                             if players[victim].color != shooter.color:
                                 shooter.shots_fired += 1
-                            if players[victim].color != shooter.color and not in_base(players[victim]) and not in_base(shooter) and players[victim].gets_shot(shooter):
+                            if players[victim].color != shooter.color and not in_base(shooter) and players[victim].gets_shot(shooter):
                                 if players[victim].health <= 0:
                                     shooter.score += 100
                                     shooter.kills+=1
@@ -298,7 +299,7 @@ while True:
             if int(time.time()) % 1 == 0:
                 new_json = {}
                 for id in players:
-                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected, "Accuracy": players[id].shots_made / players[id].shots_fired, "Just Shot": players[id].is_green and not players[id].was_green}
+                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected, "Accuracy": int(100 * players[id].shots_made / players[id].shots_fired), "Just Shot": players[id].is_green and not players[id].was_green}
                 requests.post('http://asingh921.pythonanywhere.com/hello', json=new_json)
 
             # plotting
