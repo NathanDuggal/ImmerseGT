@@ -76,6 +76,9 @@ class Player:
         self.was_green = False
         self.is_green = False
         self.player_radius = 50
+        self.shots_fired = 0.001
+        self.shots_made = 0.001
+
 
     def get_player_stats(self):
         return f"Player: id: {str(self.id)} , green: {self.is_green}, connnected: {self.connected}, health: {self.health}"
@@ -271,23 +274,31 @@ while True:
 
 
             for player in players:
+                #recharging
+                if in_base(players[victim]):
+                    players[victim].health += 5
+
+                # shooting
                 if players[player].is_green and not players[player].was_green and players[player].ammo > 0 and not players[player].dead:
                     shooter = players[player]
                     shooter.ammo -= 1
                     for victim in players:
                         if victim != player:
-                            if players[victim].color != shooter.color and not in_base(players[victim]) and players[victim].gets_shot(shooter):
+                            if players[victim].color != shooter.color:
+                                shooter.shots_fired += 1
+                            if players[victim].color != shooter.color and not in_base(players[victim]) and not in_base(shooter) and players[victim].gets_shot(shooter):
                                 if players[victim].health <= 0:
                                     shooter.score += 100
                                     shooter.kills+=1
                                     players[victim].health = 100
                                 shooter.score+=10
+                                shooter.shots_made += 1
                 print(players[player].get_player_stats())
                 
             if int(time.time()) % 1 == 0:
                 new_json = {}
                 for id in players:
-                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected, "Just Shot": players[id].is_green and not players[id].was_green}
+                    new_json[id] = {"Name": players[id].name,"Health": players[id].health, "Score": players[id].score, "Kills": players[id].kills, "Deaths": players[id].deaths, "Ammo": players[id].ammo, "Connected": players[id].connected, "Accuracy": players[id].shots_made / players[id].shots_fired, "Just Shot": players[id].is_green and not players[id].was_green}
                 requests.post('http://asingh921.pythonanywhere.com/hello', json=new_json)
 
             # plotting
