@@ -1,26 +1,31 @@
+<script>setInterval(() => {
+  window.location.reload();
+}, 500);
+</script>
 {% if objects %}
-  <table id='result' class='display'>
-    <thead>
-      <tr>
-      {% for header in headers %}
-        <th>{{header}}</th>
-      {% endfor %}
-      </tr>
-    </thead>
+<table id='result' class='display'>
+ <thead>
+   <tr>
+   {% for header in headers %}
+     <th>{{header}}</th>
+   {% endfor %}
+   </tr>
+ </thead>
 
-    <tbody>
-    {% for object in objects.values() %}    
-      <tr style ="background-color: #{{object.color}}">
-        
-        <td>{{object.name}}</td>
-        <td>{{object.score}}</td>
-        <td>{{object.kills}}</td>
-        <td>{{object.deaths}}</td>
-        <td>{{object.accuracy}}</td>
-        <td>{{object.connected}}</td>
-        
-      </tr>
-    {% endfor %}
-    </tbody>
-  </table>
+ <tbody>
+ {% for id, object in objects.items() %}
+   <tr style ="background-color: #{{object.color}}">
+     <td>{{id}}</td>
+     <td>{{object.name}}</td>
+     <td>{{object.score}}</td>
+     <td>{{object.kills}}</td>
+     <td>{{object.deaths}}</td>
+     <td>{{object.accuracy}}%</td>
+     <td>{{object.connected}}</td>
+
+   </tr>
+ {% endfor %}
+ </tbody>
+</table>
 {% endif %}
+<body>Go to <div style="color:  #002aff"> http://asingh921.pythonanywhere.com/user/player[YOUR_PLAYER_NUMBER_HERE]</div> to view your stats!</body>
