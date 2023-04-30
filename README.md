@@ -17,4 +17,4 @@ Contributers:
 * Katherine Huang
 * Anand Singh
 * Zach Finger
-* Nathan Duggal!
+* Nathan Duggal
