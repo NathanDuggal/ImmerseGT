@@ -1,7 +1,5 @@
 # LasAR Tag
 
-# Hackalytics 2023
-
 Created for the 2023 GT Extended Reality Hackathon.
 
 LasAR Tag brings laser tag to the modern age! Using AR and motion-tracking tech, users can play laser-tag in their homes with a smartphone and headset.
